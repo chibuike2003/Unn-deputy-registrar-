@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deputy Registrar - Courtesy Meetings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        header {
+            background-color: #005b2e;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .meeting-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+        }
+        footer {
+            background-color: #005b2e;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Courtesy Meetings</h1>
+    <p>Deputy Registrar Scheduling Portal</p>
+</header>
+
+<div class="container my-5">
+    <h3>Schedule a Courtesy Meeting</h3>
+    <form id="meeting-form">
+        <div class="mb-3">
+            <label for="group" class="form-label">Group Name</label>
+            <input type="text" class="form-control" id="group" required>
+        </div>
+        <div class="mb-3">
+            <label for="purpose" class="form-label">Purpose of Visit</label>
+            <input type="text" class="form-control" id="purpose" required>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" class="form-control" id="date" required>
+        </div>
+        <div class="mb-3">
+            <label for="time" class="form-label">Time</label>
+            <input type="time" class="form-control" id="time" required>
+        </div>
+        <div class="mb-3">
+            <label for="action" class="form-label">Action</label>
+            <input type="text" class="form-control" id="action" placeholder="Optional Action">
+        </div>
+        <button type="submit" class="btn btn-primary">Schedule Meeting</button>
+    </form>
+
+    <hr>
+
+    <h3>Scheduled Meetings</h3>
+    <div id="meetings-list">
+        <!-- Meeting cards will be dynamically inserted here -->
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 University of Nigeria, Nsukka | Deputy Registrar Office</p>
+</footer>
+
+<script>
+    let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+
+    document.getElementById('meeting-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        let group = document.getElementById('group').value.trim();
+        let purpose = document.getElementById('purpose').value.trim();
+        let date = document.getElementById('date').value;
+        let time = document.getElementById('time').value;
+        let action = document.getElementById('action').value.trim();
+
+        let meeting = { 
+            id: Date.now(), 
+            group, 
+            purpose, 
+            date, 
+            time, 
+            action, 
+            remark: "", 
+            status: "" // Initialize status as empty, VC will update this
+        };
+        meetings.push(meeting);
+        localStorage.setItem('meetings', JSON.stringify(meetings));
+        renderMeetings();
+        this.reset();
+    });
+
+    function renderMeetings() {
+        let list = document.getElementById('meetings-list');
+        list.innerHTML = '';
+
+        meetings.forEach(meeting => {
+            let card = document.createElement('div');
+            card.className = 'meeting-card';
+            card.innerHTML = `
+                <h5>Group: ${meeting.group}</h5>
+                <p><strong>Date:</strong> ${new Date(meeting.date).toDateString()} &nbsp; <strong>Time:</strong> ${meeting.time}</p>
+                <p><strong>Purpose:</strong> ${meeting.purpose}</p>
+                <p><strong>Action:</strong> ${meeting.action || 'N/A'}</p>
+                <p><strong>Remarks:</strong> ${meeting.status ? '<span style="color:green;font-weight:bold;">' + meeting.status + '</span>' : 'Pending'}</p>
+                
+                <button class="btn btn-danger btn-sm me-2" onclick="deleteMeeting(${meeting.id})">Delete</button>
+                <button class="btn btn-secondary btn-sm" onclick="printMeeting(${meeting.id})">Print</button>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function deleteMeeting(id) {
+        if (confirm('Are you sure you want to delete this meeting?')) {
+            meetings = meetings.filter(meeting => meeting.id !== id);
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            renderMeetings();
+        }
+    }
+
+    function printMeeting(id) {
+        let meeting = meetings.find(m => m.id === id);
+        if (meeting) {
+            let content = `
+                Group: ${meeting.group}\n
+                Purpose: ${meeting.purpose}\n
+                Date: ${new Date(meeting.date).toDateString()}\n
+                Time: ${meeting.time}\n
+                Action: ${meeting.action || 'N/A'}\n
+                Status: ${meeting.status || 'Pending'}\n
+                Remarks: ${meeting.remark || 'No remarks yet'}\n
+            `;
+            let printWindow = window.open('', '', 'height=400,width=600');
+            printWindow.document.write('<pre>' + content + '</pre>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+    }
+
+    // Load meetings on page load
+    window.onload = renderMeetings;
+</script>
+
+</body>
+</html>
