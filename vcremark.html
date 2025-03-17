@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VC Remarks - Courtesy Meetings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        header {
+            background-color: #005b2e;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .meeting-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+        }
+        footer {
+            background-color: #005b2e;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .btn-custom {
+            margin-right: 5px;
+        }
+        .status {
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>VC Remarks Portal</h1>
+    <p>Review Courtesy Meetings</p>
+</header>
+
+<div class="container my-5">
+    <h3>Meetings Scheduled for Review</h3>
+    <div id="meetings-list">
+        <!-- Meeting cards will be injected here -->
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 University of Nigeria, Nsukka | Deputy Registrar Office</p>
+</footer>
+
+<script>
+    // Load meetings from localStorage
+    function loadMeetings() {
+        let meetingsList = document.getElementById('meetings-list');
+        meetingsList.innerHTML = ''; // Clear previous content
+
+        let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+
+        if (meetings.length === 0) {
+            meetingsList.innerHTML = '<p class="text-muted">No meetings available for review.</p>';
+            return;
+        }
+
+        meetings.forEach(function (meeting, index) {
+            let meetingCard = document.createElement('div');
+            meetingCard.className = 'meeting-card';
+
+            let statusText = meeting.status ? `<p class="status">Status: ${meeting.status}</p>` : '';
+
+            meetingCard.innerHTML = `
+                <h5>Group: ${meeting.group}</h5>
+                <p><strong>Date:</strong> ${new Date(meeting.date).toDateString()} &nbsp; <strong>Time:</strong> ${meeting.time}</p>
+                <p><strong>Purpose:</strong> ${meeting.purpose}</p>
+                <p><strong>Action:</strong> ${meeting.action}</p>
+                ${statusText}
+                <div class="d-flex">
+                    <button class="btn btn-success btn-custom" onclick="acceptMeeting(${index})">Accept</button>
+                    <button class="btn btn-danger btn-custom" onclick="cancelMeeting(${index})">Cancel</button>
+                    <button class="btn btn-warning btn-custom" onclick="editMeeting(${index})">Edit</button>
+                </div>
+            `;
+            meetingsList.appendChild(meetingCard);
+        });
+    }
+
+    // Accept Meeting
+    function acceptMeeting(index) {
+        let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+        meetings[index].status = 'Accepted by VC';
+        localStorage.setItem('meetings', JSON.stringify(meetings));
+        alert('Meeting marked as "Accepted by VC"');
+        loadMeetings(); // Refresh the list to show updated status
+    }
+
+    // Cancel Meeting
+    function cancelMeeting(index) {
+        if (confirm('Are you sure you want to cancel this meeting?')) {
+            let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+            meetings.splice(index, 1); // Remove the meeting
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            loadMeetings(); // Refresh the list
+        }
+    }
+
+    // Edit Meeting
+    function editMeeting(index) {
+        let meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+        let meeting = meetings[index];
+
+        let newGroup = prompt('Edit Group:', meeting.group);
+        let newPurpose = prompt('Edit Purpose:', meeting.purpose);
+        let newDate = prompt('Edit Date (YYYY-MM-DD):', meeting.date);
+        let newTime = prompt('Edit Time (HH:MM):', meeting.time);
+        let newAction = prompt('Edit Action:', meeting.action);
+
+        if (newGroup && newPurpose && newDate && newTime && newAction) {
+            meetings[index] = {
+                group: newGroup,
+                purpose: newPurpose,
+                date: newDate,
+                time: newTime,
+                action: newAction,
+                status: meeting.status || '' // Preserve existing status if any
+            };
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            loadMeetings(); // Refresh the list
+        } else {
+            alert('All fields are required to update the meeting.');
+        }
+    }
+
+    // Load meetings on page load
+    window.onload = loadMeetings;
+</script>
+
+</body>
+</html>
